@@ -1,8 +1,9 @@
 import networkx as nx
 import heapq
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 
-G = nx.DiGraph()
+G = nx.Graph()
 
 with open('example.txt', 'r') as f:
     n = int(next(f).split(',')[1])
@@ -16,54 +17,96 @@ with open('example.txt', 'r') as f:
 
 def single_source_dijkstra(graph,source):
     priority_queue = []
-    heapq.heappush(priority_queue, (0, (source,[source])))
-    lengths = {}
-    paths = {}
+    heapq.heappush(priority_queue, (0, (source,None)))
+    weights = {}
+    links = {}
+    logs = [];
+
+
+    size = 1;
 
 
     for node in graph.nodes:
-        lengths[node] = float('inf')
-        paths[node] = []
+        weights[node] = float('inf')
+        links[node] = None
 
+    weights[source] = 0;
+    links[source] = None
 
 
     while priority_queue:
-        length , item = heapq.heappop(priority_queue)
-        node , path = item
-        print(item)
 
+        weight , item = heapq.heappop(priority_queue)
+        node , link = item
 
-        if length >= lengths[node]:
+        if weight > weights[node]:
             continue
 
-        lengths[node] = length;
-        paths[node] = path
 
 
-        for _ , dest , data in graph.out_edges(node,data = True):
-            heapq.heappush(priority_queue, (data["weight"] + length, (dest,path + [dest])))
-        print(priority_queue);
-        print("\n")
-    return lengths , paths
+
+        size = size - 1
 
 
 
 
 
-single_source_dijkstra(G,"u")
+
+        for _ , dest , data in graph.edges(node,data = True):
+
+            w = weight + data["weight"]
+
+            if w >= weights[dest]:
+                continue
+            l = link if link is not None and link != source else node
+            weights[dest] = w;
+            links[dest] = l
+            size = size + 1
+            heapq.heappush(priority_queue, (w, (dest,l)))
+        logs.append((node,dict(weights),dict(links)))
+    return weights , links , logs
+
+
+
+
+
+
+
+
 
 for node in G.nodes:
 
     source = node;
 
     print("Source: ", node)
-    weights , links = single_source_dijkstra(G,source)
 
-    for link in links:
-        if(link == source):
-            continue
-        print(link,links[link],weights[link])
+    weights , links , logs = single_source_dijkstra(G,source)
+
+    nodes = [node for node in G.nodes if node != source]
+
+    headers = ["Step","N"] + [f"D({node}),p({node})" for node in nodes]
+
+    data = []
+
+    for i in range(len(logs)):
+        node,weights,links = logs[i]
+        data.append([
+            str(i),
+            ("" if i == 0 else data[i - 1][1]) + node,
+
+
+        ] + [(f"{weights[n]},{links[n]}" if weights[n] != float('inf') else str(weights[n]))for n in nodes])
+
+    print(tabulate(data, headers=headers,tablefmt = "grid"))
     print("\n")
+
+    headers = ["Destination", "Link"]
+    data = [[node,f"({source},{links[node]})"] for node in nodes]
+    print(tabulate(data, headers=headers,tablefmt = "simple_grid"))
+
+    print(2 * "\n")
+
+
 
 
 
