@@ -102,7 +102,7 @@ for node in G.nodes:
 
     headers = ["Destination", "Link"]
     data = [[node,f"({source},{links[node]})"] for node in nodes]
-    print(tabulate(data, headers=headers,tablefmt = "simple_grid"))
+    print(tabulate(data, headers=headers,tablefmt = "grid"))
 
     print(2 * "\n")
 
