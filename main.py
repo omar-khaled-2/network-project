@@ -58,7 +58,7 @@ def single_source_dijkstra(graph,source):
 
             if w >= weights[dest]:
                 continue
-            l = link if link is not None and link != source else node
+            l = link if link is not None else dest
             weights[dest] = w;
             links[dest] = l
             size = size + 1
@@ -95,7 +95,7 @@ for node in G.nodes:
             ("" if i == 0 else data[i - 1][1]) + node,
 
 
-        ] + [(f"{weights[n]},{links[n]}" if weights[n] != float('inf') else str(weights[n]))for n in nodes])
+        ] + [(f"{weights[n]},{links[n] if links[n] != n else source}" if weights[n] != float('inf') else str(weights[n]))for n in nodes])
 
     print(tabulate(data, headers=headers,tablefmt = "grid"))
     print("\n")
